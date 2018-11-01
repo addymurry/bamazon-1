@@ -30,7 +30,8 @@ function showItems() {
     connection.query("SELECT item_id, product_name, department_name price FROM products", function (err, res) {
         if (err) throw err;
         var columns = columnify(res)
-        console.log(columns);
+        console.log(chalk.green("\n\n***************Available Products***************"))
+        console.log(columns + "\n\n");
         makeSelection();
     });
 }

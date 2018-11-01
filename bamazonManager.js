@@ -136,6 +136,8 @@ function addInventory() {
                         if (err) throw err;
                         console.log("\n\n*****************************");
                         console.log("Inventory updated sucessfully");
+                        console.log(answer.quantity + " added to inventory")
+                        console.log("Total quantity in stock: " + (chosenItem.stock_quantity + parseInt(answer.quantity)))
                         console.log("*****************************\n\n");
                         makeSelection();
                     }
