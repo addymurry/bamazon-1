@@ -1,8 +1,10 @@
+//dependencies
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 var chalk = require("chalk");
 var columnify = require("columnify");
 
+//creating the sql connection info
 var connection = mysql.createConnection({
     host: "localhost",
     port: 3306,
@@ -11,13 +13,15 @@ var connection = mysql.createConnection({
     database: "bamazonDB"
 });
 
+//connecting to server and database
 connection.connect(function (err) {
     if (err) throw err;
     console.log("connnect as id " + connection.threadId);
     makeSelection();
 })
-
+//outputs the contents of the database and runs the makeSelection function
 function makeSelection() {
+    //prompt to make a selection
     inquirer
         .prompt({
             name: "selection",
@@ -30,6 +34,7 @@ function makeSelection() {
                 "Add New Product"
             ]
         })
+        //calls the functions based off of the selection from the prompt above
         .then(function (answer) {
             switch (answer.selection) {
                 case "View Products for Sale":
@@ -51,6 +56,7 @@ function makeSelection() {
         });
 }
 
+//displays the products in inventory
 function viewProducts() {
     connection.query("SELECT item_id, product_name, price, stock_quantity FROM products", function (err, res) {
         if (err) throw err;
@@ -62,6 +68,7 @@ function viewProducts() {
 
 }
 
+//displays the products in inventory that have a stock level below 5
 function viewLowInventory() {
     connection.query("SELECT item_id, product_name, price, stock_quantity FROM products WHERE stock_quantity < 5", function (err, res) {
         if (err) throw err;
@@ -72,13 +79,14 @@ function viewLowInventory() {
     });
 }
 
+//shows the items in stock and allows you to add additional inventory of existing items in the store
 function addInventory() {
     connection.query("SELECT item_id, product_name, stock_quantity FROM products", function (err, res) {
         if (err) throw err;
         var columns = columnify(res)
         console.log(chalk.green("\n\n***************Current Inventory***************"))
         console.log(columns + "\n\n");
-
+        // prompt for the add inventory function
         inquirer
             .prompt([
                 {
@@ -104,6 +112,8 @@ function addInventory() {
                     }
                 }
             ])
+
+            //takes the input from above and finds the id number of the product in question then adds the amount of stock entered above
             .then(function (answer) {
                 var chosenItem;
                 for (var i = 0; i < res.length; i++) {
@@ -121,6 +131,7 @@ function addInventory() {
                             stock_quantity: chosenItem.stock_quantity
                         }
                     ],
+                    //logs the results
                     function (err) {
                         if (err) throw err;
                         console.log("\n\n*****************************");
@@ -133,8 +144,10 @@ function addInventory() {
     });
 }
 
+//allows you to add a product into inventory
 function addProduct() {
     console.log(chalk.green("\n\n***************Add New Product***************"))
+    //prompt for the add product function
     inquirer
         .prompt([
             {
@@ -182,8 +195,11 @@ function addProduct() {
                 }
             }
         ])
+
+        //takes input from above and adds a new product into the store.
         .then(function (answer) {
             connection.query("INSERT INTO products (product_name, department_name, price, stock_quantity) VALUES ('" + answer.name + "', '" + answer.department + "', '" + answer.price + "', '" + answer.quantity + "')",
+                //logs the results    
                 function (err) {
                     if (err) throw err;
                     console.log("\n\n*****************************");

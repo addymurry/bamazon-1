@@ -1,8 +1,10 @@
+//dependencies 
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 var chalk = require("chalk");
 var columnify = require("columnify");
 
+//creating the connection information for sql
 var connection = mysql.createConnection({
     host: "localhost",
     port: 3306,
@@ -11,16 +13,19 @@ var connection = mysql.createConnection({
     database: "bamazonDB"
 });
 
+//connecting to the server and the database
 connection.connect(function (err) {
     if (err) throw err;
     console.log("connnect as id " + connection.threadId);
     afterConnection();
 })
 
+//runs the showItems function
 function afterConnection() {
     showItems();
 }
 
+//outputs the contents of the database and runs the makeSelection function
 function showItems() {
     connection.query("SELECT item_id, product_name, department_name price FROM products", function (err, res) {
         if (err) throw err;
@@ -30,7 +35,9 @@ function showItems() {
     });
 }
 
+//gives you a list of selections to either buy, check stock, or disconnect from the server
 function makeSelection() {
+    //prompt to make a selection
     inquirer
         .prompt({
             name: "selection",
@@ -42,8 +49,11 @@ function makeSelection() {
                 "Disconnect"
             ]
         })
+
+        //calls the functions based off of the selection from the inquirer prompt above
         .then(function (answer) {
             switch (answer.selection) {
+
                 case "Buy a product":
                     buyProduct();
                     break;
@@ -59,10 +69,15 @@ function makeSelection() {
         });
 }
 
+//allows user to select a product and quantity of the product to buy
 function buyProduct() {
+
+    //query the DB for all the products
     connection.query("SELECT * FROM products", function (err, results) {
         if (err) throw err;
+        //prompt to buy a product
         inquirer
+            //ask for product ID and quantity
             .prompt([
                 {
                     name: "id",
@@ -87,6 +102,7 @@ function buyProduct() {
                     }
                 }
             ])
+            //take the input from above and find that ID in the table and subtract the quantity from the inventory if there is enough in stock.
             .then(function (answer) {
                 var chosenItem;
                 for (var i = 0; i < results.length; i++) {
@@ -105,6 +121,7 @@ function buyProduct() {
                                 stock_quantity: chosenItem.stock_quantity
                             },
                         ],
+                        //logs the results
                         function (err) {
                             if (err) throw err;
                             console.log("\n\n*************************");
@@ -125,9 +142,12 @@ function buyProduct() {
     })
 }
 
+//allows the user to check stock of a specific item
 function checkStock() {
+    //selects all products from the table
     connection.query("SELECT * FROM products", function (err, results) {
         if (err) throw err;
+        //prompt to check stock
         inquirer
             .prompt(
                 {
@@ -142,6 +162,7 @@ function checkStock() {
                     }
                 },
             )
+            //takes the input from above and displays the stock level of the ID chosen
             .then(function (answer) {
                 var chosenItem;
                 for (var i = 0; i < results.length; i++) {
@@ -157,7 +178,7 @@ function checkStock() {
             })
     })
 }
-
+//ends the server connection
 function disconnect() {
     connection.end()
 }
